@@ -29,17 +29,26 @@
     "resources": [
         {
             "name": "[variables('storageAccount')]",
+            "sku": {
+                "name": "Standard_LRS",
+                "tier": "Standard"
+            },
+            "kind": "StorageV2",
             "type": "Microsoft.Storage/storageAccounts",
-            "apiVersion": "2015-06-15",
+            "apiVersion": "2018-07-01",
             "location": "[resourceGroup().location]",
             "tags": {
-                "displayName": "[variables('storageAccount')]",
-                "testTag": "TestValue"
+                "displayName": "[variables('storageAccount')]"
             },
             "properties": {
                 "accountType": "[parameters('accountType')]"
             }
         }
     ],
-    "outputs": {}
+    "outputs": {
+        "storageAccount":{
+            "type": "string",
+            "value": "[variables('storageAccount')]"
+        }
+    }
 }
