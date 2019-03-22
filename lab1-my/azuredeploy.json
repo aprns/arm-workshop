@@ -24,7 +24,7 @@
         }
     },
     "variables": {
-        "storageAccount": "[toLower(concat(parameters('storageAccountPrefix'),uniqueString(resourceGroup().id)))]"
+        "storageAccount": "[toLower(concat(parameters('storageAccountPrefix'),uniqueString(subscription().subscriptionId)))]"
     },
     "resources": [
         {
@@ -46,7 +46,7 @@
         }
     ],
     "outputs": {
-        "storageAccount":{
+        "storageAccount": {
             "type": "string",
             "value": "[variables('storageAccount')]"
         }

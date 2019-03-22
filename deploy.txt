@@ -1,0 +1,1 @@
+az group deployment create --name job4 --resource-group armtraining --template-file azuredeploy.json --parameters "@azuredeploy.parameters.json" --mode complete  --output json
