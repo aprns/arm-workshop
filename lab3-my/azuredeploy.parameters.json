@@ -2,14 +2,22 @@
     "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-      "adminUsername": {
-        "value": "aprnsvm"
-      },
       "adminPassword": {
-        "value": "password"
+        "reference": {
+          "keyVault": {
+            "id": "/subscriptions/xxxx/resourceGroups/Training/providers/Microsoft.KeyVault/vaults/ErikasKeyVault"
+          },
+          "secretName": "Lab3UbuntuDefaultPassword"
+        }
       },
-      "dnsNamePrefix": {
-        "value": "aprnsvmdns"
+      "vnetName": {
+          "value": "myVnet2"
+      },
+      "subnetName": {
+          "value": "mySubnet"
+      },
+      "vmName": {
+          "value": "MyUbuntuVM2"
       }
     }
   }

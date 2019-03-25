@@ -2,8 +2,16 @@
     "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
+      "vmName": {
+         "type": "string",
+         "defaultValue": "MyUbuntuVM2",
+         "metadata": {
+              "description": "Name for the Virtual Machine."
+          }
+      },
       "adminUsername": {
         "type": "string",
+        "defaultValue": "aprnsvm",
         "metadata": {
           "description": "User name for the Virtual Machine."
         }
@@ -16,17 +24,19 @@
       },
       "dnsNamePrefix": {
         "type": "string",
+        "defaultValue": "aprnsvmdns2211",
         "metadata": {
           "description": "DNS Name for the publicly accessible node. Must be lowercase. It should match with the following regular expression: ^[a-z][a-z0-9-]{1,61}[a-z0-9]$ or it will raise an error."
         }
       },
       "vmSize": {
         "type": "string",
-        "defaultValue": "Standard_A1",
+        "defaultValue": "Standard_B1s",
         "allowedValues": [
           "Standard_A1",
           "Standard_A2",
           "Standard_A3",
+          "Standard_B1s",
           "Standard_D1",
           "Standard_D3",
           "Standard_D4"
@@ -37,11 +47,13 @@
       },
       "ubuntuOSVersion": {
         "type": "string",
-        "defaultValue": "14.04.5-LTS",
+        "defaultValue": "18.04-LTS",
         "allowedValues": [
           "12.04.5-LTS",
           "14.04.5-LTS",
-          "15.10"
+          "15.10",
+          "16.04-LTS",
+          "18.04-LTS"
         ],
         "metadata": {
           "description": "The Ubuntu version for the VM. This will pick a fully patched image of this given Ubuntu version. Allowed values: 12.04.5-LTS, 14.04.5-LTS, 15.10."
@@ -53,28 +65,48 @@
         "metadata": {
           "description": "Location for all resources."
         }
+      },
+      "vnetName": {
+         "type": "string",
+         "metadata": {
+              "description": "vnet Name"
+          }
+      },
+      "vnetPrefix": {
+         "type": "string",
+         "defaultValue": "10.0.0.0/16",
+         "metadata": {
+              "description": "vnet Prefix"
+          }
+      },
+      "subnetName": {
+         "type": "string",
+         "defaultValue": "Subnet",
+         "metadata": {
+              "description": "Subnet Name"
+          }
+      },
+      "subnetPrefix": {
+         "type": "string",
+         "defaultValue": "10.0.0.0/24",
+         "metadata": {
+              "description": "Subnet prefix"
+          }
       }
     },
     "variables": {
       "imagePublisher": "Canonical",
       "imageOffer": "UbuntuServer",
       "OSDiskName": "osdiskforlinuxsimple",
-      "nicName": "myVMNic",
-      "addressPrefix": "10.0.0.0/16",
-      "subnetName": "Subnet",
-      "subnetPrefix": "10.0.0.0/24",
-      "storageAccountName": "[concat(uniquestring(resourceGroup().id), 'standardsa')]",
-      "storageAccountType": "Standard_LRS",
-      "publicIPAddressName": "myPublicIP",
+      "nicName": "[concat(parameters('vmName'),'-nic')]",
+      "vmId":"[resourceId('Microsoft.Compute/virtualMachines',parameters('vmName'))]",
+      "publicIPAddressName": "[concat(parameters('vmName'),'-pip')]",
       "publicIPAddressType": "Dynamic",
-      "vmStorageAccountContainerName": "vhds",
-      "vmName": "MyubuntuVM",
-      "virtualNetworkName": "MyVNET",
-      "subnetRef": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('virtualNetworkName'), variables('subnetName'))]"
+      "subnetRef": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('vnetName'), parameters('subnetName'))]"
     },
     "resources": [
       {
-        "apiVersion": "2015-06-15",
+        "apiVersion": "2018-11-01",
         "type": "Microsoft.Network/publicIPAddresses",
         "name": "[variables('publicIPAddressName')]",
         "location": "[parameters('location')]",
@@ -86,34 +118,34 @@
         }
       },
       {
-        "apiVersion": "2015-06-15",
+        "apiVersion": "2018-11-01",
         "type": "Microsoft.Network/virtualNetworks",
-        "name": "[variables('virtualNetworkName')]",
+        "name": "[parameters('vnetName')]",
         "location": "[parameters('location')]",
         "properties": {
           "addressSpace": {
             "addressPrefixes": [
-              "[variables('addressPrefix')]"
+              "[parameters('vnetPrefix')]"
             ]
           },
           "subnets": [
             {
-              "name": "[variables('subnetName')]",
+              "name": "[parameters('subnetName')]",
               "properties": {
-                "addressPrefix": "[variables('subnetPrefix')]"
+                "addressPrefix": "[parameters('subnetPrefix')]"
               }
             }
           ]
         }
       },
       {
-        "apiVersion": "2015-06-15",
+        "apiVersion": "2018-11-01",
         "type": "Microsoft.Network/networkInterfaces",
         "name": "[variables('nicName')]",
         "location": "[parameters('location')]",
         "dependsOn": [
           "[concat('Microsoft.Network/publicIPAddresses/', variables('publicIPAddressName'))]",
-          "[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]"
+          "[concat('Microsoft.Network/virtualNetworks/', parameters('vnetName'))]"
         ],
         "properties": {
           "ipConfigurations": [
@@ -133,9 +165,9 @@
         }
       },
       {
-        "apiVersion": "2017-03-30",
+        "apiVersion": "2019-03-01",
         "type": "Microsoft.Compute/virtualMachines",
-        "name": "[variables('vmName')]",
+        "name": "[parameters('vmName')]",
         "location": "[parameters('location')]",
         "dependsOn": [
           "[concat('Microsoft.Network/networkInterfaces/', variables('nicName'))]"
@@ -145,7 +177,7 @@
             "vmSize": "[parameters('vmSize')]"
           },
           "osProfile": {
-            "computerName": "[variables('vmName')]",
+            "computerName": "[parameters('vmName')]",
             "adminUsername": "[parameters('adminUsername')]",
             "adminPassword": "[parameters('adminPassword')]"
           },
@@ -157,7 +189,7 @@
               "version": "latest"
             },
             "osDisk": {
-              "name": "[concat(variables('vmName'),'_OSDisk')]",
+              "name": "[concat(parameters('vmName'),'_OSDisk')]",
               "caching": "ReadWrite",
               "createOption": "FromImage"
             }
@@ -170,27 +202,6 @@
             ]
           }
         }
-      },
-      {
-        "type": "Microsoft.Compute/virtualMachines/extensions",
-        "name": "[concat(variables('vmName'),'/newuserscript')]",
-        "apiVersion": "2015-06-15",
-        "location": "[parameters('location')]",
-        "dependsOn": [
-          "[concat('Microsoft.Compute/virtualMachines/', variables('vmName'))]"
-        ],
-        "properties": {
-          "publisher": "Microsoft.Azure.Extensions",
-          "type": "CustomScript",
-          "typeHandlerVersion": "2.0",
-          "autoUpgradeMinorVersion": true,
-          "settings": {
-            "fileUris": [
-              "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/postgresql-standalone-server-ubuntu/install_postgresql.sh"
-            ],
-            "commandToExecute": "bash install_postgresql.sh"
-          }
-        }
       }
     ],
     "outputs": {
@@ -200,11 +211,15 @@
         },
         "VM": {
            "type": "string",
-           "value": "[variables('vmName')]"
+           "value": "[parameters('vmName')]"
         },
         "OSDiskName": {
            "type": "string",
            "value": "[variables('OSDiskName')]"
+        },
+        "vmRef": {
+           "type": "string",
+           "value": "[reference(variables('vmId')).storageProfile.osDisk.managedDisk.id]"
         }
     }
   }
