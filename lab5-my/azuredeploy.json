@@ -4,7 +4,8 @@
     "parameters": {
       "vmName": {
          "type": "string",
-         "defaultValue": "lab4MyUbuntuVM",
+         "minLength": 6,
+         "maxLength": 20,
          "metadata": {
               "description": "Name for the Virtual Machine."
           }
@@ -28,6 +29,14 @@
         "metadata": {
           "description": "DNS Name for the publicly accessible node. Must be lowercase. It should match with the following regular expression: ^[a-z][a-z0-9-]{1,61}[a-z0-9]$ or it will raise an error."
         }
+      },
+      "numberOfDataDisks": {
+         "type": "int",
+         "defaultValue": 1,
+         "maxValue": 2,
+         "metadata": {
+              "description": "Number of Data Disks"
+          }
       },
       "vmSize": {
         "type": "string",
@@ -97,7 +106,8 @@
     "variables": {
       "imagePublisher": "Canonical",
       "imageOffer": "UbuntuServer",
-      "OSDiskName": "osdiskforlinuxsimple",
+      "OSDiskName": "[concat(parameters('vmName'),'-osDisk')]",
+      "DataDiskName": "[concat(parameters('vmName'),'-dataDisk0')]",
       "nicName": "[concat(parameters('vmName'),'-nic')]",
       "vmId":"[resourceId('Microsoft.Compute/virtualMachines',parameters('vmName'))]",
       "publicIPAddressName": "[concat(parameters('vmName'),'-pip')]",
@@ -191,10 +201,22 @@
               "version": "latest"
             },
             "osDisk": {
-              "name": "[concat(parameters('vmName'),'_OSDisk')]",
+              "name": "[variables('OSDiskName')]",
               "caching": "ReadWrite",
               "createOption": "FromImage"
-            }
+            },
+            "copy": [
+              {
+                "name": "dataDisks",
+                "count": "[parameters('numberOfDataDisks')]",
+                "input": {
+                  "name": "[concat(variables('DataDiskName'),copyIndex('dataDisks'))]",
+                  "diskSizeGB": 100,
+                  "lun": "[copyIndex('dataDisks')]",
+                  "createOption": "Empty"
+                }
+              }
+            ]
           },
           "networkProfile": {
             "networkInterfaces": [

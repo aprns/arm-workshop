@@ -5,7 +5,7 @@
       "adminPassword": {
         "reference": {
           "keyVault": {
-            "id": "/subscriptions/xxxx/resourceGroups/Training/providers/Microsoft.KeyVault/vaults/ErikasKeyVault"
+            "id": "/subscriptions/xxx/resourceGroups/Training/providers/Microsoft.KeyVault/vaults/xxxx"
           },
           "secretName": "Lab3UbuntuDefaultPassword"
         }
@@ -14,7 +14,7 @@
           "value": "adminuser"
       },
       "vnetName": {
-          "value": "vnet"
+          "value": "lab4vnet"
       }
     }
   }

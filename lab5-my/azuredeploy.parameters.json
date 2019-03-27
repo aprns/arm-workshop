@@ -5,19 +5,16 @@
       "adminPassword": {
         "reference": {
           "keyVault": {
-            "id": "/subscriptions/xxxx/resourceGroups/Training/providers/Microsoft.KeyVault/vaults/xxxx"
+            "id": "/subscriptions/xx/resourceGroups/Training/providers/Microsoft.KeyVault/vaults/xxx"
           },
           "secretName": "Lab3UbuntuDefaultPassword"
         }
       },
+      "adminUsername": {
+          "value": "adminuser"
+      },
       "vnetName": {
-          "value": "myVnet2"
-      },
-      "subnetName": {
-          "value": "mySubnet"
-      },
-      "vmName": {
-          "value": "MyUbuntuVM2"
+          "value": "lab5vnet"
       }
     }
   }
